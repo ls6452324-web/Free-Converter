@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All-in-One Free File Converter</title>
+    <!-- Tailwind CSS for modern and clean UI -->
+    <script src="https://jsdelivr.net"></script>
+    <!-- jsPDF Library for PDF generation -->
+    <script src="https://cloudflare.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col justify-between">
+
+    <!-- Header / Navbar -->
+    <header class="bg-blue-600 text-white shadow-md p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold tracking-wide">? SmartConverter</h1>
+            <p class="text-sm hidden sm:block">100% Secure & Free Client-Side Tool</p>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="container mx-auto max-w-2xl p-6 bg-white shadow-xl rounded-2xl my-10">
+        <h2 class="text-xl font-bold text-center mb-6 text-gray-700">Choose Your Conversion Type</h2>
+        
+        <!-- Conversion Type Selector -->
+        <div class="mb-6">
+            <label class="block text-sm font-semibold text-gray-600 mb-2">Select Format:</label>
+            <select id="conversionType" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="imageToPdf">?? Image to PDF</option>
+                <option value="textToPdf">?? Text (.txt) to PDF</option>
+                <option value="pngToJpg">?? PNG to JPG</option>
+                <option value="jpgToPng">?? JPG to PNG</option>
+            </select>
+        </div>
+
+        <!-- File Upload Box -->
+        <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-gray-50 hover:bg-gray-100 transition cursor-pointer relative" id="dropZone">
+            <input type="file" id="fileInput" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/*,.txt">
+            <div class="space-y-2">
+                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                    <path d="M28 8H12a4 4 0 00-4 4v20a4 4 0 004 4h24a4 4 0 004-4V20L28 8z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <p class="text-md font-medium text-gray-600" id="fileLabel">Click to upload or drag & drop file here</p>
+                <p class="text-xs text-gray-400">Supports JPG, PNG, and TXT files</p>
+            </div>
+        </div>
+
+        <!-- Convert Button -->
+        <button id="convertBtn" class="w-full mt-6 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+            Convert File Now
+        </button>
+
+        <!-- Google AdSense Placeholder (For Future Earning) -->
+        <div class="mt-8 p-4 bg-gray-100 text-center text-xs text-gray-400 rounded-lg tracking-wider border border-gray-200">
+            ADVERTISEMENT PLACEHOLDER<br>
+            (Once approved, paste your Google AdSense code here to start earning)
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white text-center p-4 text-sm">
+        <p>&copy; 2026 SmartConverter. Built for privacy — files never leave your device.</p>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const fileLabel = document.getElementById('fileLabel');
+        const convertBtn = document.getElementById('convertBtn');
+        const conversionType = document.getElementById('conversionType');
+        let selectedFile = null;
+
+        // Change accept attribute dynamic based on type selection
+        conversionType.addEventListener('change', () => {
+            fileInput.value = '';
+            selectedFile = null;
+            convertBtn.disabled = true;
+            fileLabel.innerText = "Click to upload or drag & drop file here";
+            
+            if (conversionType.value === 'textToPdf') {
+                fileInput.accept = ".txt";
+            } else {
+                fileInput.accept = "image/*";
+            }
+        });
+
+        // Listen for file selection
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                selectedFile = e.target.files[0];
+                fileLabel.innerText = `Selected: ${selectedFile.name} (${(selectedFile.size/1024).toFixed(1)} KB)`;
+                convertBtn.disabled = false;
+            }
+        });
+
+        // Core conversion logic
+        convertBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+
+            const type = conversionType.value;
+            const { jsPDF } = window.jspdf;
+
+            if (type === 'imageToPdf') {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const doc = new jsPDF();
+                    doc.addImage(event.target.result, 'JPEG', 10, 10, 180, 150);
+                    doc.save('converted-image.pdf');
+                };
+                reader.readAsDataURL(selectedFile);
+
+            } else if (type === 'textToPdf') {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const doc = new jsPDF();
+                    doc.text(event.target.result, 10, 10);
+                    doc.save('converted-text.pdf');
+                };
+                reader.readAsText(selectedFile);
+
+            } else if (type === 'pngToJpg' || type === 'jpgToPng') {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const img = new Image();
+                    img.onload = function () {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0);
+                        
+                        const format = (type === 'pngToJpg') ? 'image/jpeg' : 'image/png';
+                        const ext = (type === 'pngToJpg') ? 'jpg' : 'png';
+                        
+                        const dataUrl = canvas.toDataURL(format);
+                        const link = document.createElement('a');
+                        link.download = `converted-file.${ext}`;
+                        link.href = dataUrl;
+                        link.click();
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(selectedFile);
+            }
+        });
+    </script>
+</body>
+</html>
